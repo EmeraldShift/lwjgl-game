@@ -1,11 +1,13 @@
 package com.lithia.cs.core;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.util.glu.GLU.*;
+
+import org.lwjgl.*;
+import org.lwjgl.input.*;
+import org.lwjgl.opengl.*;
+
+import com.lithia.cs.core.world.*;
 
 /**
  *	A simple framework for creating and utilizing an OpenGL context created by
@@ -13,6 +15,8 @@ import static org.lwjgl.util.glu.GLU.*;
  */
 public class Game
 {
+	
+	private World world;
 	
 	/**
 	 * 	Creates the {@code Display} to be used by the LWJGL project.
@@ -38,6 +42,7 @@ public class Game
 	 */
 	private void init()
 	{
+		world = new World();
 	}
 	
 	/**
@@ -49,7 +54,7 @@ public class Game
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		
-		gluPerspective(67.0f, Config.WIDTH / Config.HEIGHT, 0.1f, 1024);
+		gluPerspective(67.0f, Config.WIDTH / (float) Config.HEIGHT, 0.1f, 1024);
 		
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -75,7 +80,7 @@ public class Game
 	 */
 	private void update()
 	{
-		
+		world.update();
 	}
 	
 	/**
@@ -83,7 +88,10 @@ public class Game
 	 */
 	private void render()
 	{
-		// TODO something
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glLoadIdentity();
+		
+		world.render();
 		
 		Display.update();
 		Display.sync(60);

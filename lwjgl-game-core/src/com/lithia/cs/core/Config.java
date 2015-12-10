@@ -1,6 +1,6 @@
 package com.lithia.cs.core;
 
-import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.*;
 
 /**
  * 	A simple configuration file to contain a few hard-coded values used by the application.
@@ -26,6 +26,6 @@ public class Config
 	/**
 	 * The title of the application, seen at the top of the application window.
 	 */
-	public static final String TITLE = "LWJGL Game";
+	public static final String TITLE = "Voxel Game";
 	
 }

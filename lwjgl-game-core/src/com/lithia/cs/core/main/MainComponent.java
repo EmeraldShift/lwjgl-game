@@ -1,7 +1,8 @@
 package com.lithia.cs.core.main;
 
-import org.lwjgl.LWJGLException;
-import com.lithia.cs.core.Game;
+import org.lwjgl.*;
+
+import com.lithia.cs.core.*;
 
 /**
  *	Entry point of the application.  Contains static {@code main} method.
