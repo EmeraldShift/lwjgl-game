@@ -1,18 +1,20 @@
 package com.lithia.cs.core.main;
 
 import org.lwjgl.*;
-
 import com.lithia.cs.core.*;
 
 /**
- *	Entry point of the application.  Contains static {@code main} method.
+ * Entry point of the application. Contains static {@code main} method.
  */
 public class MainComponent
 {
 	
 	/**
-	 * 	Main entry point.  Creates a {@code Game} instance and creates the OpenGL context.
-	 * 	@param args Command-line arguments.  Unused.
+	 * Main entry point. Creates a {@code Game} instance and creates the OpenGL
+	 * context.
+	 * 
+	 * @param args
+	 *            Command-line arguments. Unused.
 	 */
 	public static void main(String[] args)
 	{
@@ -23,7 +25,7 @@ public class MainComponent
 			game.create();
 			game.run();
 		}
-		catch(LWJGLException e)
+		catch (LWJGLException e)
 		{
 			Game.err(e, false);
 		}

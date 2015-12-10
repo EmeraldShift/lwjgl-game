@@ -10,17 +10,20 @@ import org.lwjgl.opengl.*;
 import com.lithia.cs.core.world.*;
 
 /**
- *	A simple framework for creating and utilizing an OpenGL context created by
- *	LWJGL.  Also contains the main game loop, and update / render processing.
+ * A simple framework for creating and utilizing an OpenGL context created by
+ * LWJGL. Also contains the main game loop, and update / render processing.
  */
 public class Game
 {
 	
+	private Player player;
 	private World world;
 	
 	/**
-	 * 	Creates the {@code Display} to be used by the LWJGL project.
-	 * 	@throws LWJGLException if creating the display fails.
+	 * Creates the {@code Display} to be used by the LWJGL project.
+	 * 
+	 * @throws LWJGLException
+	 *             if creating the display fails.
 	 */
 	public void create() throws LWJGLException
 	{
@@ -38,15 +41,16 @@ public class Game
 	}
 	
 	/**
-	 * 	Configure the initial state of OpenGL and any objects present.
+	 * Configure the initial state of OpenGL and any objects present.
 	 */
 	private void init()
 	{
+		player = new Player();
 		world = new World();
 	}
 	
 	/**
-	 * 	Prepare OpenGL for rendering by fitting it to our screen.
+	 * Prepare OpenGL for rendering by fitting it to our screen.
 	 */
 	private void resizeGL()
 	{
@@ -61,11 +65,12 @@ public class Game
 	}
 	
 	/**
-	 * 	Initialize the main game loop, including updating and rendering all on-screen objects.
+	 * Initialize the main game loop, including updating and rendering all
+	 * on-screen objects.
 	 */
 	public void run()
 	{
-		while(!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
+		while (!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
 		{
 			update();
 			render();
@@ -76,21 +81,23 @@ public class Game
 	}
 	
 	/**
-	 * 	Pass an update to all objects.
+	 * Pass an update to all objects.
 	 */
 	private void update()
 	{
+		player.update();
 		world.update();
 	}
 	
 	/**
-	 * 	Draw all objects to screen.
+	 * Draw all objects to screen.
 	 */
 	private void render()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glLoadIdentity();
 		
+		player.render();
 		world.render();
 		
 		Display.update();
@@ -98,14 +105,18 @@ public class Game
 	}
 	
 	/**
-	 * 	Throw an error to the engine, dumping it to the screen and halting execution if necessary.
-	 * 	@param e The exception involved in the error report.
-	 * 	@param ignore Whether or not to ignore the exception and continue execution.
+	 * Throw an error to the engine, dumping it to the screen and halting
+	 * execution if necessary.
+	 * 
+	 * @param e
+	 *            The exception involved in the error report.
+	 * @param ignore
+	 *            Whether or not to ignore the exception and continue execution.
 	 */
 	public static void err(Throwable e, boolean ignore)
 	{
 		System.out.println("Error thrown in thread " + Thread.currentThread().getName() + " : " + e.getMessage());
-		if(!ignore)
+		if (!ignore)
 		{
 			System.out.println("System can no longer continue, terminating...");
 			System.exit(1);
