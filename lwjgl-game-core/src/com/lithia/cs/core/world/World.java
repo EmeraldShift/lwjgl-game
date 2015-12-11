@@ -126,13 +126,6 @@ public class World extends Renderable
 				if(c != null) c.render();
 			}
 		}
-		
-		GL11.glBegin(GL11.GL_QUADS);
-		GL11.glVertex3f(1, 1, 2);
-		GL11.glVertex3f(0, 1, 2);
-		GL11.glVertex3f(0, 0, 2);
-		GL11.glVertex3f(1, 0, 2);
-		GL11.glEnd();
 	}
 	
 	/**
