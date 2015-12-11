@@ -2,8 +2,14 @@ package com.lithia.cs.core.world;
 
 import static org.lwjgl.opengl.GL11.*;
 
+import java.nio.*;
+import java.util.*;
+
+import org.lwjgl.*;
 import org.lwjgl.util.vector.*;
+
 import com.lithia.cs.core.*;
+import com.lithia.cs.core.world.block.*;
 
 /**
  * The primary division of the {@code World}. Separates blocks into
@@ -20,12 +26,22 @@ public class Chunk extends Renderable
 	 * when breaking or building blocks very rapidly and / or between multiple
 	 * chunks.
 	 */
-	public static final int CHUNK_SIZE = 16;
+	public static final Vector3f CHUNK_SIZE = new Vector3f(16, 128, 16);
 	
 	private int displayList = -1;
 	
 	public boolean update = true;
 	private boolean generate = true;
+	
+	/**
+	 * Holds all the data for the positions of the vertices.
+	 */
+	private final List<Float> quads = new ArrayList<Float>();
+	
+	/**
+	 * Holds all the data for the color of the vertices.
+	 */
+	private final List<Float> color = new ArrayList<Float>();
 	
 	/**
 	 * The parent world is the encapsulating {@code World} instance of which
@@ -51,7 +67,7 @@ public class Chunk extends Renderable
 		this.position = position;
 		this.parent = parent;
 		
-		blocks = new int[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+		blocks = new int[(int) CHUNK_SIZE.x][(int) CHUNK_SIZE.y][(int) CHUNK_SIZE.z];
 	}
 	
 	/**
@@ -59,7 +75,7 @@ public class Chunk extends Renderable
 	 */
 	public void render()
 	{
-		glCallList(displayList); // TODO Actually fill this list with data
+		glCallList(displayList);
 	}
 	
 	/**
@@ -74,8 +90,18 @@ public class Chunk extends Renderable
 	{
 		if (generate)
 		{
-			// TODO create a "chunk generator" to create (hopefully
-			// realistic-ish) terrain
+			Random rand = new Random();
+			for(int x = 0; x < CHUNK_SIZE.x; x++)
+			{
+				for(int y = 0; y < CHUNK_SIZE.y; y++)
+				{
+					for(int z = 0; z < CHUNK_SIZE.z; z++)
+					{
+						if(rand.nextInt(1200) == 1) blocks[x][y][z] = 1;
+					}
+				}
+			}
+			System.out.println("Chunk (" + (int) position.x + ", " + + (int) position.z + ") generated.");
 			return true;
 		}
 		
@@ -87,7 +113,17 @@ public class Chunk extends Renderable
 	 */
 	public void generateVertexArrays()
 	{
-		
+		for(int x = 0; x < CHUNK_SIZE.z; x++)
+		{
+			for(int y = 0; y < CHUNK_SIZE.y; y++)
+			{
+				for(int z = 0; z < CHUNK_SIZE.z; z++)
+				{
+					generateBlockVertices(x, y, z);
+				}
+			}	
+		}
+		update = false;
 	}
 	
 	/**
@@ -99,15 +135,270 @@ public class Chunk extends Renderable
 	 */
 	public void generateBlockVertices(int x, int y, int z)
 	{
+		// There are not words to describe how insanely slow this is
+		// TODO optimize to timbuktu and back
 		
+		int type = blocks[x][y][z];
+		
+		if(Block.getBlock(type).isBlockInvisible()) return;
+		
+		// Calculate the block offset from the World's origin
+		float offsetX = position.x * CHUNK_SIZE.x;
+		float offsetY = position.y * CHUNK_SIZE.y;
+		float offsetZ = position.z * CHUNK_SIZE.z;
+		
+		// Create lists to hold the quad and color data (for now, just white)
+		List<Float> quads = new ArrayList<Float>();
+		List<Float> color = new ArrayList<Float>();
+		
+		// Top
+		Vector4f colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.TOP);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		// Front
+		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.FRONT);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		// Back
+		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BACK);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		// Left
+		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.LEFT);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		// Right
+		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.RIGHT);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY + 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		// Bottom
+		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BOTTOM);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ - 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX + 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		color.add(colorOffset.x);
+		color.add(colorOffset.y);
+		color.add(colorOffset.z);
+		color.add(colorOffset.w);
+		quads.add(x + offsetX - 0.5f);
+		quads.add(y + offsetY - 0.5f);
+		quads.add(z + offsetZ + 0.5f);
+		
+		this.quads.addAll(quads);
+		this.color.addAll(color);
 	}
-	
+
 	/**
 	 * Rebuild the OpenGL display list used to render the chunk.
 	 */
 	public void generateDisplayList()
 	{
+		// Skip the build process if there's no data
+		if(quads.isEmpty() && color.isEmpty()) return;
 		
+		// Reset the previous display list and create a new one!
+		if(glIsList(displayList)) glDeleteLists(displayList, 1);
+		displayList = glGenLists(1);
+		
+		// Create the final float buffer for use in the display list
+		FloatBuffer q = BufferUtils.createFloatBuffer(quads.size());
+		FloatBuffer c = BufferUtils.createFloatBuffer(color.size());
+		
+		for(Float f : quads) q.put(f);
+		for(Float f : color) c.put(f);
+		
+		q.flip();
+		c.flip();
+		
+		glNewList(displayList, GL_COMPILE);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, 0, c);
+		glVertexPointer(3, 0, q);
+		glDrawArrays(GL_QUADS, 0, quads.size() / 3); // Hmm, game 
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glEndList();
+		
+		quads.clear();
+		color.clear();
 	}
 	
 	/*

@@ -2,6 +2,7 @@ package com.lithia.cs.core.world;
 
 import java.util.*;
 
+import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.*;
 
 import com.lithia.cs.core.*;
@@ -51,11 +52,11 @@ public class World extends Renderable
 	public World(String name, Player player)
 	{
 		this.player = player;
-		chunks = new Chunk[Config.WORLD_SIZE][Config.WORLD_SIZE][Config.WORLD_SIZE];
+		chunks = new Chunk[(int) Config.WORLD_SIZE.x][(int) Config.WORLD_SIZE.y][(int) Config.WORLD_SIZE.z];
 		
-		for (int x = 0; x < Config.WORLD_SIZE; x++)
+		for (int x = 0; x < Config.WORLD_SIZE.x; x++)
 		{
-			for (int z = 0; z < Config.WORLD_SIZE; z++)
+			for (int z = 0; z < Config.WORLD_SIZE.z; z++)
 			{
 				// For now, we'll only autogen the lowest chunk layer, primarily
 				// because I'm unsure of whether I even want there to be 16
@@ -85,6 +86,8 @@ public class World extends Renderable
 			}
 			
 		});
+		
+		updateThread.start();
 	}
 	
 	/**
@@ -112,7 +115,21 @@ public class World extends Renderable
 	 */
 	public void render()
 	{
+		for(int x = 0; x < Config.WORLD_SIZE.x; x++)
+		{
+			for(int z = 0; z < Config.WORLD_SIZE.x; z++)
+			{
+				Chunk c = chunks[x][0][z];
+				if(c != null) c.render();
+			}
+		}
 		
+		GL11.glBegin(GL11.GL_QUADS);
+		GL11.glVertex3f(1, 1, 2);
+		GL11.glVertex3f(0, 1, 2);
+		GL11.glVertex3f(0, 0, 2);
+		GL11.glVertex3f(1, 0, 2);
+		GL11.glEnd();
 	}
 	
 	/**
@@ -120,6 +137,16 @@ public class World extends Renderable
 	 */
 	public void update()
 	{
+		if(chunkDLUpdateQueue.isEmpty()) return;
+		try
+		{
+			Chunk c = chunkDLUpdateQueue.remove(0);
+			c.generateDisplayList();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	/**

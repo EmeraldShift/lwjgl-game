@@ -47,6 +47,9 @@ public class Game
 	{
 		player = new Player();
 		world = new World("world", player);
+		
+		glClearColor(10 / 16f, 13 / 16f, 15 / 16f, 1.0f);
+		glEnable(GL_DEPTH_TEST);
 	}
 	
 	/**

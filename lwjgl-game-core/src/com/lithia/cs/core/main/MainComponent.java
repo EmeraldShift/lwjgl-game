@@ -1,6 +1,7 @@
 package com.lithia.cs.core.main;
 
 import org.lwjgl.*;
+
 import com.lithia.cs.core.*;
 
 /**
@@ -18,6 +19,12 @@ public class MainComponent
 	 */
 	public static void main(String[] args)
 	{
+		if(args.length == 2)
+		{
+			Config.WIDTH = Integer.parseInt(args[0]);
+			Config.HEIGHT = Integer.parseInt(args[1]);
+		}
+		
 		try
 		{
 			Game game = new Game();
