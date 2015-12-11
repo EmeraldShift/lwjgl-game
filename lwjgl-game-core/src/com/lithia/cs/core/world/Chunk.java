@@ -97,7 +97,7 @@ public class Chunk extends Renderable
 				{
 					for(int z = 0; z < CHUNK_SIZE.z; z++)
 					{
-						if(rand.nextInt(1200) == 1) blocks[x][y][z] = 1;
+						if(rand.nextInt(12) == 1) blocks[x][y][z] = 1;
 					}
 				}
 			}
@@ -139,6 +139,14 @@ public class Chunk extends Renderable
 		// TODO optimize to timbuktu and back
 		
 		int type = blocks[x][y][z];
+		boolean drawTop, drawFront, drawBack, drawLeft, drawRight, drawBottom;
+		
+		drawTop = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y + 1), getBlockWorldPosZ(z)), type);
+		drawFront = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z - 1)), type);
+		drawBack = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z + 1)), type);
+		drawLeft = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x - 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
+		drawRight = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x + 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
+		drawBottom = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y - 1), getBlockWorldPosZ(z)), type);
 		
 		if(Block.getBlock(type).isBlockInvisible()) return;
 		
@@ -151,218 +159,231 @@ public class Chunk extends Renderable
 		List<Float> quads = new ArrayList<Float>();
 		List<Float> color = new ArrayList<Float>();
 		
-		// Top
-		Vector4f colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.TOP);
+		Vector4f colorOffset;
+		if(drawTop)
+		{
+			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.TOP);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+		}
 		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ + 0.5f);
+		if(drawFront)
+		{
+			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.FRONT);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+		}
 		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ + 0.5f);
+		if(drawBack)
+		{
+			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BACK);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+		}
 		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ - 0.5f);
+		if(drawLeft)
+		{
+			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.LEFT);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+		}
 		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ - 0.5f);
+		if(drawRight)
+		{
+			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.RIGHT);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY + 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+		}
 		
-		// Front
-		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.FRONT);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		// Back
-		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BACK);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		// Left
-		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.LEFT);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		// Right
-		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.RIGHT);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY + 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		// Bottom
-		colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BOTTOM);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ - 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX + 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		color.add(colorOffset.x);
-		color.add(colorOffset.y);
-		color.add(colorOffset.z);
-		color.add(colorOffset.w);
-		quads.add(x + offsetX - 0.5f);
-		quads.add(y + offsetY - 0.5f);
-		quads.add(z + offsetZ + 0.5f);
-		
-		this.quads.addAll(quads);
-		this.color.addAll(color);
+		if(drawBottom)
+		{
+			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BOTTOM);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ - 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX + 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			color.add(colorOffset.x);
+			color.add(colorOffset.y);
+			color.add(colorOffset.z);
+			color.add(colorOffset.w);
+			quads.add(x + offsetX - 0.5f);
+			quads.add(y + offsetY - 0.5f);
+			quads.add(z + offsetZ + 0.5f);
+			
+			this.quads.addAll(quads);
+			this.color.addAll(color);
+		}
 	}
 
 	/**
@@ -400,6 +421,61 @@ public class Chunk extends Renderable
 		quads.clear();
 		color.clear();
 	}
+	
+	/**
+	 * Determine whether a face should be rendered based on surroundings.
+	 * 
+	 * @param check The block to check off of
+	 * @param block The block with the face in question
+	 * @return Whether or not the block face should be renderered.
+	 */
+	private boolean isSideVisibleForBlockType(int check, int block)
+	{
+		return check == 0x0 || Block.getBlock(check).isBlockInvisible();
+	}
+	
+	private int getChunkWorldPosX()
+	{
+		return (int) (position.x * CHUNK_SIZE.x);
+	}
+	
+	private int getChunkWorldPosY()
+	{
+		return (int) (position.y * CHUNK_SIZE.y);
+	}
+	
+	private int getChunkWorldPosZ()
+	{
+		return (int) (position.z * CHUNK_SIZE.z);
+	}
+	
+	private int getBlockWorldPosX(int x)
+	{
+		return x + getChunkWorldPosX();
+	}
+	
+	private int getBlockWorldPosY(int y)
+	{
+		return y + getChunkWorldPosY();
+	}
+	
+	private int getBlockWorldPosZ(int z)
+	{
+		return z + getChunkWorldPosZ();
+	}
+
+	public int getBlock(int x, int y, int z)
+	{
+		try
+		{
+			return blocks[x][y][z];
+		}
+		catch(Exception e)
+		{
+			return -1; // just incase they give invalid location
+		}
+	}
+	
 	
 	/*
 	 * Alrighty, so here's the plan. There's a really elegant way to do this

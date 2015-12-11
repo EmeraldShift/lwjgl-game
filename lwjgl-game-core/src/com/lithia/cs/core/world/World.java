@@ -2,10 +2,10 @@ package com.lithia.cs.core.world;
 
 import java.util.*;
 
-import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.*;
 
 import com.lithia.cs.core.*;
+import com.lithia.cs.core.world.block.*;
 
 public class World extends Renderable
 {
@@ -83,7 +83,13 @@ public class World extends Renderable
 					}
 					
 					// Just so our poor CPU has time to rest
-					try { Thread.sleep(50); } catch (Exception e) {}
+					try
+					{
+						Thread.sleep(50);
+					}
+					catch (Exception e)
+					{
+					}
 				}
 				
 			}
@@ -118,12 +124,12 @@ public class World extends Renderable
 	 */
 	public void render()
 	{
-		for(int x = 0; x < Config.WORLD_SIZE.x; x++)
+		for (int x = 0; x < Config.WORLD_SIZE.x; x++)
 		{
-			for(int z = 0; z < Config.WORLD_SIZE.x; z++)
+			for (int z = 0; z < Config.WORLD_SIZE.x; z++)
 			{
 				Chunk c = chunks[x][0][z];
-				if(c != null) c.render();
+				if (c != null) c.render();
 			}
 		}
 	}
@@ -133,16 +139,69 @@ public class World extends Renderable
 	 */
 	public void update()
 	{
-		if(chunkDLUpdateQueue.isEmpty()) return;
+		if (chunkDLUpdateQueue.isEmpty()) return;
 		try
 		{
 			Chunk c = chunkDLUpdateQueue.remove(0);
 			c.generateDisplayList();
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public int getBlock(int x, int y, int z)
+	{
+		int chunkPosX = calcChunkPosX(x);
+		int chunkPosY = calcChunkPosY(y);
+		int chunkPosZ = calcChunkPosZ(z);
+		
+		int blockPosX = calcBlockPosX(x, chunkPosX);
+		int blockPosY = calcBlockPosY(y, chunkPosY);
+		int blockPosZ = calcBlockPosZ(z, chunkPosZ);
+		
+		Chunk c = null;
+		
+		try
+		{
+			c = chunks[chunkPosX][chunkPosY][chunkPosZ];
+		}
+		catch(Exception e) {}
+		
+		if(c != null) return c.getBlock(blockPosX, blockPosY, blockPosZ);
+		
+		return -1;
+	}
+	
+	private int calcBlockPosX(int x1, int x2)
+	{
+		return (x1 - (x2 * (int) Chunk.CHUNK_SIZE.x));
+	}
+	
+	private int calcBlockPosY(int y1, int y2)
+	{
+		return (y1 - (y2 * (int) Chunk.CHUNK_SIZE.y));
+	}
+	
+	private int calcBlockPosZ(int z1, int z2)
+	{
+		return (z1 - (z2 * (int) Chunk.CHUNK_SIZE.z));
+	}
+
+	private int calcChunkPosX(int x)
+	{
+		return x / (int) Chunk.CHUNK_SIZE.x;
+	}
+	
+	private int calcChunkPosY(int y)
+	{
+		return y / (int) Chunk.CHUNK_SIZE.y;
+	}
+	
+	private int calcChunkPosZ(int z)
+	{
+		return z / (int) Chunk.CHUNK_SIZE.z;
 	}
 	
 	/**
