@@ -81,6 +81,9 @@ public class World extends Renderable
 						// run too extensively.
 						processChunk(chunkUpdateQueue.remove(0));
 					}
+					
+					// Just so our poor CPU has time to rest
+					try { Thread.sleep(50); } catch (Exception e) {}
 				}
 				
 			}

@@ -27,6 +27,9 @@ public class Player extends Renderable
 		glTranslatef(-position.x, -position.y, -position.z);
 	}
 	
+	/**
+	 * Updates the player's position and orientation by utilizing input from the keyboard and mouse.
+	 */
 	private void updatePosition()
 	{
 		Vector3f dPos = new Vector3f();

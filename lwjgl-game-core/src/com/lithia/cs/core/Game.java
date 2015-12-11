@@ -104,7 +104,7 @@ public class Game
 		world.render();
 		
 		Display.update();
-		Display.sync(60);
+		Display.sync(Config.FRAME_RATE);
 	}
 	
 	/**

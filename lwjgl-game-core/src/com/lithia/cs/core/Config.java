@@ -11,12 +11,12 @@ public class Config
 {
 	
 	/**
-	 * The width of the application window.
+	 * The default width of the application window.
 	 */
 	public static int WIDTH = 640;
 	
 	/**
-	 * The height of the application window.
+	 * The default height of the application window.
 	 */
 	public static int HEIGHT = 480;
 	
@@ -34,5 +34,10 @@ public class Config
 	 * The size of the game world, in chunks along each axis.
 	 */
 	public static final Vector3f WORLD_SIZE = new Vector3f(16, 1, 16);
+	
+	/**
+	 * The number of times per second the game will attempt to redraw the screen.
+	 */
+	public static final int FRAME_RATE = 60;
 	
 }
