@@ -29,4 +29,9 @@ public class Config
 	 */
 	public static final String TITLE = "Voxel Game";
 	
+	/**
+	 * The size of the game world, in chunks.
+	 */
+	public static final int WORLD_SIZE = 16;
+	
 }

@@ -6,9 +6,18 @@ public abstract class Renderable
 {
 	protected Vector3f position = new Vector3f();
 	
-	public abstract void update();
-	
+	/**
+	 * Draws the {@code Renderable} to the game screen.
+	 */
 	public abstract void render();
+	
+	/**
+	 * Implement this {@code update} method to add functionality for updating the instance between frames.
+	 */
+	public void update()
+	{
+		
+	}
 	
 	public Vector3f getPosition()
 	{

@@ -46,7 +46,7 @@ public class Game
 	private void init()
 	{
 		player = new Player();
-		world = new World();
+		world = new World("world", player);
 	}
 	
 	/**
