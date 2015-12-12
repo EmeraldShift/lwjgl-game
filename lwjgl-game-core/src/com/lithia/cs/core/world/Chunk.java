@@ -99,7 +99,7 @@ public class Chunk extends Renderable
 	{
 		if (generate)
 		{
-			for(Generator g : generators)
+			for (Generator g : generators)
 			{
 				g.generate(this, parent);
 			}
@@ -492,10 +492,34 @@ public class Chunk extends Renderable
 		{
 			blocks[x][y][z] = type;
 			update = true;
+			
+			updateNeighbors(x, z);
 		}
 		catch (Exception e)
 		{
 		}
+	}
+	
+	private void updateNeighbors(int x, int z)
+	{
+		Chunk[] neighbors = getNeighbors();
+		
+		if (x == 0) neighbors[1].update = true;
+		if (x == Chunk.CHUNK_SIZE.x - 1) neighbors[0].update = true;
+		if (z == 0) neighbors[3].update = true;
+		if (z == Chunk.CHUNK_SIZE.z - 1) neighbors[2].update = true;
+	}
+	
+	public Chunk[] getNeighbors()
+	{
+		Chunk[] neighbors = new Chunk[4];
+		
+		neighbors[0] = parent.getChunk((int) position.x + 1, (int) position.y, (int) position.z);
+		neighbors[1] = parent.getChunk((int) position.x - 1, (int) position.y, (int) position.z);
+		neighbors[2] = parent.getChunk((int) position.x, (int) position.y, (int) position.z + 1);
+		neighbors[3] = parent.getChunk((int) position.x, (int) position.y, (int) position.z - 1);
+		
+		return neighbors;
 	}
 	
 	/*

@@ -60,12 +60,11 @@ public class World extends Renderable
 				
 				Chunk c = new Chunk(this, new Vector3f(x, 0, z), gs);
 				chunks[x][0][z] = c;
-				queueChunkForUpdate(c);
+				queueChunkForUpdate(chunks[x][0][z]);
 			}
 		}
 		
 		player.resetPosition();
-		
 		updateThread = new Thread(new Runnable()
 		{
 			
@@ -80,16 +79,14 @@ public class World extends Renderable
 						processChunk(chunkUpdateQueue.remove(0));
 					}
 					
-					// Just so our poor CPU has time to rest
 					try
 					{
 						Thread.sleep(5);
 					}
-					catch (Exception e)
+					catch(Exception e)
 					{
 					}
 				}
-				
 			}
 			
 		});
@@ -106,6 +103,22 @@ public class World extends Renderable
 	 */
 	private void processChunk(Chunk c)
 	{
+		if(c == null) return;
+		
+		Chunk[] neighbors = c.getNeighbors();
+		for(Chunk n : neighbors)
+		{
+			if(n == null) continue;
+			
+			n.generate();
+			
+			if(n.update)
+			{
+				n.generateVertexArrays();
+				chunkDLUpdateQueue.add(n);
+			}
+		}
+		
 		c.generate();
 		
 		if (c.update)
@@ -132,17 +145,11 @@ public class World extends Renderable
 		}
 	}
 	
-	private long load = System.currentTimeMillis() + 5000;
-	
 	/**
 	 * Iterate through chunks in update queue, and rebuild their display lists.
 	 */
 	public void update()
 	{
-		// Let the world load a few chunks before continuing.
-		if(System.currentTimeMillis() < load) return;
-		
-		if (chunkDLUpdateQueue.isEmpty()) return;
 		try
 		{
 			Chunk c = chunkDLUpdateQueue.remove(0);
@@ -150,8 +157,22 @@ public class World extends Renderable
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
 		}
+	}
+
+	public Chunk getChunk(int x, int y, int z)
+	{
+		Chunk c = null;
+		
+		try
+		{
+			c = chunks[x][y][z];
+		}
+		catch(Exception e)
+		{
+		}
+		
+		return c;
 	}
 	
 	public int getBlock(int x, int y, int z)
@@ -170,11 +191,14 @@ public class World extends Renderable
 		{
 			c = chunks[chunkPosX][chunkPosY][chunkPosZ];
 		}
-		catch (Exception e) {}
+		catch (Exception e)
+		{
+		}
 		
 		if (c != null) return c.getBlock(blockPosX, blockPosY, blockPosZ);
+		else System.out.println(chunkPosX + ", " + chunkPosY + ", " + chunkPosZ);
 		
-		return 0;
+		return 1;
 	}
 	
 	private int calcBlockPosX(int x1, int x2)
