@@ -1,6 +1,5 @@
 package com.lithia.cs.core;
 
-import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.*;
 
 /**
@@ -28,7 +27,7 @@ public class Config
 	/**
 	 * The size of the game world, in chunks along each axis.
 	 */
-	public static final Vector3f WORLD_SIZE = new Vector3f(16, 1, 16);
+	public static final Vector3f WORLD_SIZE = new Vector3f(24, 1, 24);
 	
 	/**
 	 * The number of times per second the game will attempt to redraw the

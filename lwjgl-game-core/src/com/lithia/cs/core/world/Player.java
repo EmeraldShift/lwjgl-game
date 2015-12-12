@@ -80,7 +80,7 @@ public class Player extends Renderable
 
 	public void resetPosition()
 	{
-		position = new Vector3f(64, 80, 64);
+		position = new Vector3f(192, 80, 192);
 	}
 	
 }

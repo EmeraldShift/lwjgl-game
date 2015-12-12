@@ -60,7 +60,7 @@ public class World extends Renderable
 				
 				Chunk c = new Chunk(this, new Vector3f(x, 0, z), gs);
 				chunks[x][0][z] = c;
-				queueChunkForUpdate(chunks[x][0][z]);
+				queueChunkForUpdate(c);
 			}
 		}
 		
@@ -74,16 +74,36 @@ public class World extends Renderable
 				{
 					if (!chunkUpdateQueue.isEmpty() && chunkDLUpdateQueue.isEmpty())
 					{
-						// We'll take one chunk at a time so this loop doesn't
-						// run too extensively.
-						processChunk(chunkUpdateQueue.remove(0));
+						Chunk[] chunks = chunkUpdateQueue.toArray(new Chunk[0]);
+						
+						double distance = Float.MAX_VALUE;
+						int index = -1;
+						
+						for(int i = 0; i < chunks.length; i++)
+						{
+							Chunk c = chunks[i];
+							double dist = c.calcDistanceToPlayer();
+							
+							if(dist < distance)
+							{
+								distance = dist;
+								index = i;
+							}
+						}
+						
+						if(index != -1)
+						{
+							Chunk c = chunks[index];
+							processChunk(c);
+							chunkUpdateQueue.remove(c);
+						}
 					}
 					
 					try
 					{
-						Thread.sleep(5);
+						Thread.sleep(0);
 					}
-					catch(Exception e)
+					catch (Exception e)
 					{
 					}
 				}
@@ -103,16 +123,16 @@ public class World extends Renderable
 	 */
 	private void processChunk(Chunk c)
 	{
-		if(c == null) return;
+		if (c == null) return;
 		
 		Chunk[] neighbors = c.getNeighbors();
-		for(Chunk n : neighbors)
+		for (Chunk n : neighbors)
 		{
-			if(n == null) continue;
+			if (n == null) continue;
 			
 			n.generate();
 			
-			if(n.update)
+			if (n.update)
 			{
 				n.generateVertexArrays();
 				chunkDLUpdateQueue.add(n);
@@ -159,7 +179,7 @@ public class World extends Renderable
 		{
 		}
 	}
-
+	
 	public Chunk getChunk(int x, int y, int z)
 	{
 		Chunk c = null;
@@ -168,7 +188,7 @@ public class World extends Renderable
 		{
 			c = chunks[x][y][z];
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 		}
 		
@@ -195,8 +215,8 @@ public class World extends Renderable
 		{
 		}
 		
-		if (c != null) return c.getBlock(blockPosX, blockPosY, blockPosZ);
-		else System.out.println(chunkPosX + ", " + chunkPosY + ", " + chunkPosZ);
+		if (c != null)
+			return c.getBlock(blockPosX, blockPosY, blockPosZ);
 		
 		return 1;
 	}
@@ -240,6 +260,11 @@ public class World extends Renderable
 	private void queueChunkForUpdate(Chunk c)
 	{
 		if (c != null) chunkUpdateQueue.add(c);
+	}
+
+	public Player getPlayer()
+	{
+		return player;
 	}
 	
 }

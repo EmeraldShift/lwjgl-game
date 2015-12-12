@@ -472,6 +472,15 @@ public class Chunk extends Renderable
 	{
 		return z + getChunkWorldPosZ();
 	}
+
+	public double calcDistanceToPlayer()
+	{
+		double x = parent.getPlayer().getPosition().x - getChunkWorldPosX();
+		double y = parent.getPlayer().getPosition().y - getChunkWorldPosY();
+		double z = parent.getPlayer().getPosition().z - getChunkWorldPosZ();
+		
+		return Math.sqrt(x * x + y * y + z * z);
+	}
 	
 	public int getBlock(int x, int y, int z)
 	{
