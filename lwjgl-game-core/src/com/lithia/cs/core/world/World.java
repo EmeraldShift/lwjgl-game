@@ -5,15 +5,10 @@ import java.util.*;
 import org.lwjgl.util.vector.*;
 
 import com.lithia.cs.core.*;
-import com.lithia.cs.core.world.block.*;
+import com.lithia.cs.core.gen.*;
 
 public class World extends Renderable
 {
-	
-	/**
-	 * The display list used for drawing the world.
-	 */
-	private int displayList = -1;
 	
 	/**
 	 * The (single) player to occupy the world. This hook may be used to access
@@ -49,24 +44,27 @@ public class World extends Renderable
 	 */
 	private List<Chunk> chunkDLUpdateQueue = new LinkedList<Chunk>();
 	
-	public World(String name, Player player)
+	public World(String name, String seed, Player player)
 	{
 		this.player = player;
 		chunks = new Chunk[(int) Config.WORLD_SIZE.x][(int) Config.WORLD_SIZE.y][(int) Config.WORLD_SIZE.z];
+		
+		Generator terrainGen = new GeneratorTerrain(seed);
 		
 		for (int x = 0; x < Config.WORLD_SIZE.x; x++)
 		{
 			for (int z = 0; z < Config.WORLD_SIZE.z; z++)
 			{
-				// For now, we'll only autogen the lowest chunk layer, primarily
-				// because I'm unsure of whether I even want there to be 16
-				// chunks stacked on top of each other. Sounds like a lot of
-				// extra overhead for mostly empty chunks anyway. TBD
-				Chunk c = new Chunk(this, new Vector3f(x, 0, z));
+				ArrayList<Generator> gs = new ArrayList<Generator>();
+				gs.add(terrainGen);
+				
+				Chunk c = new Chunk(this, new Vector3f(x, 0, z), gs);
 				chunks[x][0][z] = c;
 				queueChunkForUpdate(c);
 			}
 		}
+		
+		player.resetPosition();
 		
 		updateThread = new Thread(new Runnable()
 		{
@@ -134,11 +132,16 @@ public class World extends Renderable
 		}
 	}
 	
+	private long load = System.currentTimeMillis() + 5000;
+	
 	/**
 	 * Iterate through chunks in update queue, and rebuild their display lists.
 	 */
 	public void update()
 	{
+		// Let the world load a few chunks before continuing.
+		if(System.currentTimeMillis() < load) return;
+		
 		if (chunkDLUpdateQueue.isEmpty()) return;
 		try
 		{

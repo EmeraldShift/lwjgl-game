@@ -28,7 +28,8 @@ public class Player extends Renderable
 	}
 	
 	/**
-	 * Updates the player's position and orientation by utilizing input from the keyboard and mouse.
+	 * Updates the player's position and orientation by utilizing input from the
+	 * keyboard and mouse.
 	 */
 	private void updatePosition()
 	{
@@ -36,6 +37,9 @@ public class Player extends Renderable
 		
 		yaw += Mouse.getDX() / 10.0f;
 		pitch -= Mouse.getDY() / 10.0f;
+		
+		if(pitch > 90) pitch = 90;
+		if(pitch < -90) pitch = -90;
 		
 		if (Keyboard.isKeyDown(Keyboard.KEY_W))
 		{
@@ -72,6 +76,11 @@ public class Player extends Renderable
 		}
 		
 		position = Vector3f.add(dPos, position, null);
+	}
+
+	public void resetPosition()
+	{
+		position = new Vector3f(64, 80, 64);
 	}
 	
 }

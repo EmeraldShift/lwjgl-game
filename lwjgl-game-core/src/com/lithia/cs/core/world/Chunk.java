@@ -9,6 +9,7 @@ import org.lwjgl.*;
 import org.lwjgl.util.vector.*;
 
 import com.lithia.cs.core.*;
+import com.lithia.cs.core.gen.*;
 import com.lithia.cs.core.world.block.*;
 
 /**
@@ -59,15 +60,23 @@ public class Chunk extends Renderable
 	private int[][][] blocks;
 	
 	/**
+	 * Maintains a list of the generators to act upon this chunk when it is
+	 * created. May contain any amount of generators, including but not limited
+	 * to terrain, flora, vegetation, etc.
+	 */
+	private List<Generator> generators = new ArrayList<Generator>();
+	
+	/**
 	 * Initializes a chunk, supplying it with its position in the world as well
 	 * as a hook back to the "parent" world.
 	 */
-	public Chunk(World parent, Vector3f position)
+	public Chunk(World parent, Vector3f position, ArrayList<Generator> gen)
 	{
 		this.position = position;
 		this.parent = parent;
 		
 		blocks = new int[(int) CHUNK_SIZE.x][(int) CHUNK_SIZE.y][(int) CHUNK_SIZE.z];
+		generators.addAll(gen);
 	}
 	
 	/**
@@ -90,15 +99,9 @@ public class Chunk extends Renderable
 	{
 		if (generate)
 		{
-			for(int x = 0; x < CHUNK_SIZE.x; x++)
+			for(Generator g : generators)
 			{
-				for(int y = 0; y < CHUNK_SIZE.y; y++)
-				{
-					for(int z = 0; z < CHUNK_SIZE.z; z++)
-					{
-						if(y < 3 && new Random().nextInt(100) != 0) blocks[x][y][z] = 1;
-					}
-				}
+				g.generate(this, parent);
 			}
 			
 			generate = false;
@@ -113,15 +116,15 @@ public class Chunk extends Renderable
 	 */
 	public void generateVertexArrays()
 	{
-		for(int x = 0; x < CHUNK_SIZE.z; x++)
+		for (int x = 0; x < CHUNK_SIZE.z; x++)
 		{
-			for(int y = 0; y < CHUNK_SIZE.y; y++)
+			for (int y = 0; y < CHUNK_SIZE.y; y++)
 			{
-				for(int z = 0; z < CHUNK_SIZE.z; z++)
+				for (int z = 0; z < CHUNK_SIZE.z; z++)
 				{
 					generateBlockVertices(x, y, z);
 				}
-			}	
+			}
 		}
 		update = false;
 	}
@@ -140,7 +143,7 @@ public class Chunk extends Renderable
 		
 		drawTop = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y + 1), getBlockWorldPosZ(z)), type);
 		
-		if(Block.getBlock(type).isBlockInvisible()) return;
+		if (Block.getBlock(type).isBlockInvisible()) return;
 		
 		// Calculate the block offset from the World's origin
 		float offsetX = position.x * CHUNK_SIZE.x;
@@ -152,7 +155,7 @@ public class Chunk extends Renderable
 		List<Float> color = new ArrayList<Float>();
 		
 		Vector4f colorOffset;
-		if(drawTop)
+		if (drawTop)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.TOP);
 			
@@ -191,7 +194,7 @@ public class Chunk extends Renderable
 		
 		drawFront = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z - 1)), type);
 		
-		if(drawFront)
+		if (drawFront)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.FRONT);
 			
@@ -229,8 +232,8 @@ public class Chunk extends Renderable
 		}
 		
 		drawBack = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z + 1)), type);
-
-		if(drawBack)
+		
+		if (drawBack)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BACK);
 			
@@ -268,8 +271,8 @@ public class Chunk extends Renderable
 		}
 		
 		drawLeft = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x - 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
-
-		if(drawLeft)
+		
+		if (drawLeft)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.LEFT);
 			
@@ -307,8 +310,8 @@ public class Chunk extends Renderable
 		}
 		
 		drawRight = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x + 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
-
-		if(drawRight)
+		
+		if (drawRight)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.RIGHT);
 			
@@ -346,8 +349,8 @@ public class Chunk extends Renderable
 		}
 		
 		drawBottom = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y - 1), getBlockWorldPosZ(z)), type);
-
-		if(drawBottom)
+		
+		if (drawBottom)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BOTTOM);
 			
@@ -383,29 +386,31 @@ public class Chunk extends Renderable
 			quads.add(y + offsetY - 0.5f);
 			quads.add(z + offsetZ + 0.5f);
 		}
-
+		
 		this.quads.addAll(quads);
 		this.color.addAll(color);
 	}
-
+	
 	/**
 	 * Rebuild the OpenGL display list used to render the chunk.
 	 */
 	public void generateDisplayList()
 	{
 		// Skip the build process if there's no data
-		if(quads.isEmpty() && color.isEmpty()) return;
+		if (quads.isEmpty() && color.isEmpty()) return;
 		
 		// Reset the previous display list and create a new one!
-		if(glIsList(displayList)) glDeleteLists(displayList, 1);
+		if (glIsList(displayList)) glDeleteLists(displayList, 1);
 		displayList = glGenLists(1);
 		
 		// Create the final float buffer for use in the display list
 		FloatBuffer q = BufferUtils.createFloatBuffer(quads.size());
 		FloatBuffer c = BufferUtils.createFloatBuffer(color.size());
 		
-		for(Float f : quads) q.put(f);
-		for(Float f : color) c.put(f);
+		for (Float f : quads)
+			q.put(f);
+		for (Float f : color)
+			c.put(f);
 		
 		q.flip();
 		c.flip();
@@ -427,13 +432,15 @@ public class Chunk extends Renderable
 	/**
 	 * Determine whether a face should be rendered based on surroundings.
 	 * 
-	 * @param check The block to check off of
-	 * @param block The block with the face in question
+	 * @param check
+	 *            The block to check off of
+	 * @param block
+	 *            The block with the face in question
 	 * @return Whether or not the block face should be renderered.
 	 */
 	private boolean isSideVisibleForBlockType(int check, int block)
 	{
-		return check == 0x0 || Block.getBlock(check).isBlockInvisible();
+		return check < 1 || Block.getBlock(check).isBlockInvisible();
 	}
 	
 	private int getChunkWorldPosX()
@@ -465,20 +472,31 @@ public class Chunk extends Renderable
 	{
 		return z + getChunkWorldPosZ();
 	}
-
+	
 	public int getBlock(int x, int y, int z)
 	{
 		try
 		{
 			return blocks[x][y][z];
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 		}
 		
 		return -1;
 	}
 	
+	public void setBlock(int x, int y, int z, int type)
+	{
+		try
+		{
+			blocks[x][y][z] = type;
+			update = true;
+		}
+		catch (Exception e)
+		{
+		}
+	}
 	
 	/*
 	 * Alrighty, so here's the plan. There's a really elegant way to do this

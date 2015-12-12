@@ -31,8 +31,15 @@ public class Config
 	public static final Vector3f WORLD_SIZE = new Vector3f(16, 1, 16);
 	
 	/**
-	 * The number of times per second the game will attempt to redraw the screen.
+	 * The number of times per second the game will attempt to redraw the
+	 * screen.
 	 */
 	public static final int FRAME_RATE = 60;
+	
+	/**
+	 * The default seed used to generate the world (for testing purposes, to get
+	 * consistent world generation
+	 */
+	public static final String DEFAULT_SEED = "world";
 	
 }
