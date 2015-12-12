@@ -27,7 +27,7 @@ public class Game
 	 */
 	public void create() throws LWJGLException
 	{
-		Display.setDisplayMode(Config.DISPLAY_MODE);
+		Display.setDisplayMode(new DisplayMode(Config.WIDTH, Config.HEIGHT));
 		Display.setTitle(Config.TITLE);
 		Display.create();
 		
@@ -50,6 +50,7 @@ public class Game
 		
 		glClearColor(10 / 16f, 13 / 16f, 15 / 16f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 	}
 	
 	/**

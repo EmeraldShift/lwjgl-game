@@ -90,18 +90,18 @@ public class Chunk extends Renderable
 	{
 		if (generate)
 		{
-			Random rand = new Random();
 			for(int x = 0; x < CHUNK_SIZE.x; x++)
 			{
 				for(int y = 0; y < CHUNK_SIZE.y; y++)
 				{
 					for(int z = 0; z < CHUNK_SIZE.z; z++)
 					{
-						if(rand.nextInt(12) == 1) blocks[x][y][z] = 1;
+						if(y < 3 && new Random().nextInt(100) != 0) blocks[x][y][z] = 1;
 					}
 				}
 			}
-			System.out.println("Chunk (" + (int) position.x + ", " + + (int) position.z + ") generated.");
+			
+			generate = false;
 			return true;
 		}
 		
@@ -135,18 +135,10 @@ public class Chunk extends Renderable
 	 */
 	public void generateBlockVertices(int x, int y, int z)
 	{
-		// There are not words to describe how insanely slow this is
-		// TODO optimize to timbuktu and back
-		
 		int type = blocks[x][y][z];
 		boolean drawTop, drawFront, drawBack, drawLeft, drawRight, drawBottom;
 		
 		drawTop = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y + 1), getBlockWorldPosZ(z)), type);
-		drawFront = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z - 1)), type);
-		drawBack = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z + 1)), type);
-		drawLeft = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x - 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
-		drawRight = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x + 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
-		drawBottom = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y - 1), getBlockWorldPosZ(z)), type);
 		
 		if(Block.getBlock(type).isBlockInvisible()) return;
 		
@@ -197,6 +189,8 @@ public class Chunk extends Renderable
 			quads.add(z + offsetZ - 0.5f);
 		}
 		
+		drawFront = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z - 1)), type);
+		
 		if(drawFront)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.FRONT);
@@ -234,6 +228,8 @@ public class Chunk extends Renderable
 			quads.add(z + offsetZ - 0.5f);
 		}
 		
+		drawBack = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y), getBlockWorldPosZ(z + 1)), type);
+
 		if(drawBack)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BACK);
@@ -271,6 +267,8 @@ public class Chunk extends Renderable
 			quads.add(z + offsetZ + 0.5f);
 		}
 		
+		drawLeft = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x - 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
+
 		if(drawLeft)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.LEFT);
@@ -308,6 +306,8 @@ public class Chunk extends Renderable
 			quads.add(z + offsetZ - 0.5f);
 		}
 		
+		drawRight = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x + 1), getBlockWorldPosY(y), getBlockWorldPosZ(z)), type);
+
 		if(drawRight)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.RIGHT);
@@ -345,6 +345,8 @@ public class Chunk extends Renderable
 			quads.add(z + offsetZ - 0.5f);
 		}
 		
+		drawBottom = isSideVisibleForBlockType(parent.getBlock(getBlockWorldPosX(x), getBlockWorldPosY(y - 1), getBlockWorldPosZ(z)), type);
+
 		if(drawBottom)
 		{
 			colorOffset = Block.getBlock(type).getColorOffsetFor(Block.SIDE.BOTTOM);
@@ -380,10 +382,10 @@ public class Chunk extends Renderable
 			quads.add(x + offsetX - 0.5f);
 			quads.add(y + offsetY - 0.5f);
 			quads.add(z + offsetZ + 0.5f);
-			
-			this.quads.addAll(quads);
-			this.color.addAll(color);
 		}
+
+		this.quads.addAll(quads);
+		this.color.addAll(color);
 	}
 
 	/**
@@ -413,7 +415,7 @@ public class Chunk extends Renderable
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(4, 0, c);
 		glVertexPointer(3, 0, q);
-		glDrawArrays(GL_QUADS, 0, quads.size() / 3); // Hmm, game 
+		glDrawArrays(GL_QUADS, 0, quads.size() / 3);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glEndList();
@@ -472,8 +474,9 @@ public class Chunk extends Renderable
 		}
 		catch(Exception e)
 		{
-			return -1; // just incase they give invalid location
 		}
+		
+		return -1;
 	}
 	
 	

@@ -19,7 +19,7 @@ public class MainComponent
 	 */
 	public static void main(String[] args)
 	{
-		if(args.length == 2)
+		if(args.length >= 2)
 		{
 			Config.WIDTH = Integer.parseInt(args[0]);
 			Config.HEIGHT = Integer.parseInt(args[1]);

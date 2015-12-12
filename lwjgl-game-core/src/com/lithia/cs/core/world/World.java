@@ -75,7 +75,7 @@ public class World extends Renderable
 			{
 				while (true)
 				{
-					if (!chunkUpdateQueue.isEmpty())
+					if (!chunkUpdateQueue.isEmpty() && chunkDLUpdateQueue.isEmpty())
 					{
 						// We'll take one chunk at a time so this loop doesn't
 						// run too extensively.
@@ -85,7 +85,7 @@ public class World extends Renderable
 					// Just so our poor CPU has time to rest
 					try
 					{
-						Thread.sleep(50);
+						Thread.sleep(5);
 					}
 					catch (Exception e)
 					{
@@ -167,28 +167,28 @@ public class World extends Renderable
 		{
 			c = chunks[chunkPosX][chunkPosY][chunkPosZ];
 		}
-		catch(Exception e) {}
+		catch (Exception e) {}
 		
-		if(c != null) return c.getBlock(blockPosX, blockPosY, blockPosZ);
+		if (c != null) return c.getBlock(blockPosX, blockPosY, blockPosZ);
 		
-		return -1;
+		return 0;
 	}
 	
 	private int calcBlockPosX(int x1, int x2)
 	{
-		return (x1 - (x2 * (int) Chunk.CHUNK_SIZE.x));
+		return (x1 - x2 * (int) Chunk.CHUNK_SIZE.x);
 	}
 	
 	private int calcBlockPosY(int y1, int y2)
 	{
-		return (y1 - (y2 * (int) Chunk.CHUNK_SIZE.y));
+		return (y1 - y2 * (int) Chunk.CHUNK_SIZE.y);
 	}
 	
 	private int calcBlockPosZ(int z1, int z2)
 	{
-		return (z1 - (z2 * (int) Chunk.CHUNK_SIZE.z));
+		return (z1 - z2 * (int) Chunk.CHUNK_SIZE.z);
 	}
-
+	
 	private int calcChunkPosX(int x)
 	{
 		return x / (int) Chunk.CHUNK_SIZE.x;
@@ -212,7 +212,7 @@ public class World extends Renderable
 	 */
 	private void queueChunkForUpdate(Chunk c)
 	{
-		chunkUpdateQueue.add(c);
+		if (c != null) chunkUpdateQueue.add(c);
 	}
 	
 }

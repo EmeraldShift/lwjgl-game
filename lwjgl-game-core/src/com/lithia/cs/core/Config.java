@@ -21,11 +21,6 @@ public class Config
 	public static int HEIGHT = 480;
 	
 	/**
-	 * The {@code DisplayMode} used by LWJGL to create the {@code Display}.
-	 */
-	public static final DisplayMode DISPLAY_MODE = new DisplayMode(WIDTH, HEIGHT);
-	
-	/**
 	 * The title of the application, seen at the top of the application window.
 	 */
 	public static final String TITLE = "Voxel Game";
