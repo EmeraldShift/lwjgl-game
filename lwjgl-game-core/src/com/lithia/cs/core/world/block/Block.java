@@ -48,11 +48,11 @@ public abstract class Block
 	 */
 	public Vector4f getColorOffsetFor(SIDE side)
 	{
-		if (side == SIDE.TOP) return new Vector4f(0.8f, 0.8f, 0.8f, 1.0f);
-		if (side == SIDE.LEFT || side == SIDE.RIGHT) return new Vector4f(0.6f, 0.6f, 0.6f, 1.0f);
-		if (side == SIDE.FRONT || side == SIDE.BACK) return new Vector4f(0.4f, 0.4f, 0.4f, 1.0f);
+		if (side == SIDE.TOP) return new Vector4f(0.4f, 0.8f, 0.4f, 1.0f);
+		if (side == SIDE.LEFT || side == SIDE.RIGHT) return new Vector4f(0.3f, 0.6f, 0.3f, 1.0f);
+		if (side == SIDE.FRONT || side == SIDE.BACK) return new Vector4f(0.2f, 0.4f, 0.2f, 1.0f);
 		
-		return new Vector4f(0.2f, 0.2f, 0.2f, 1.0f);
+		return new Vector4f(0.1f, 0.2f, 0.1f, 1.0f);
 	}
 	
 	public boolean isBlockInvisible()

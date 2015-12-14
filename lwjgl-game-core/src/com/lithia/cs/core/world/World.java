@@ -82,7 +82,7 @@ public class World extends Renderable
 						for(int i = 0; i < chunks.length; i++)
 						{
 							Chunk c = chunks[i];
-							double dist = c.calcDistanceToPlayer();
+							double dist = c.calcDistanceSquaredToPlayer();
 							
 							if(dist < distance)
 							{
