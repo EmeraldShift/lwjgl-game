@@ -1,6 +1,6 @@
 package com.lithia.cs.core.world.block;
 
-import org.lwjgl.util.vector.*;
+import org.lwjgl.util.vector.Vector4f;
 
 /**
  * Represents a block in the voxel world. Each block has a defined type, which
@@ -19,7 +19,7 @@ public abstract class Block
 		LEFT, RIGHT, TOP, BOTTOM, FRONT, BACK;
 	}
 	
-	private static Block[] blocks = { new BlockAir(), new BlockDirt() };
+	private static Block[] blocks = { new BlockAir(), new BlockDirt(), new BlockGlass() };
 	private static Block nil = new BlockNil();
 	
 	public static Block getBlock(int type)
@@ -39,6 +39,15 @@ public abstract class Block
 	}
 	
 	/**
+	 * Returns the color of the block type.
+	 * @return A vector representing the color
+	 */
+	public Vector4f getColor()
+	{
+		return new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	
+	/**
 	 * Calculate color offset for each side. (otherwise it'd all be solid white
 	 * with no shading or definition.
 	 * 
@@ -48,11 +57,18 @@ public abstract class Block
 	 */
 	public Vector4f getColorOffsetFor(SIDE side)
 	{
-		if (side == SIDE.TOP) return new Vector4f(0.4f, 0.8f, 0.4f, 1.0f);
-		if (side == SIDE.LEFT || side == SIDE.RIGHT) return new Vector4f(0.3f, 0.6f, 0.3f, 1.0f);
-		if (side == SIDE.FRONT || side == SIDE.BACK) return new Vector4f(0.2f, 0.4f, 0.2f, 1.0f);
+		Vector4f color = getColor();
 		
-		return new Vector4f(0.1f, 0.2f, 0.1f, 1.0f);
+		if (side == SIDE.TOP) return new Vector4f(color.x * 0.9f, color.y * 0.9f, color.z * 0.9f, color.w * 1.0f);
+		if (side == SIDE.LEFT || side == SIDE.RIGHT) return new Vector4f(color.x * 0.75f, color.y * 0.75f, color.z * 0.75f, color.w * 1.0f);
+		if (side == SIDE.FRONT || side == SIDE.BACK) return new Vector4f(color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, color.w * 1.0f);
+		
+		return new Vector4f(color.x * 0.3f, color.y * 0.3f, color.z * 0.3f, color.w * 1.0f);
+	}
+	
+	public boolean isBlockTransparent()
+	{
+		return getColor().w != 1.0f;
 	}
 	
 	public boolean isBlockInvisible()

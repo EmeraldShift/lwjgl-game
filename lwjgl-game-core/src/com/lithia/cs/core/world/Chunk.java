@@ -452,7 +452,7 @@ public class Chunk extends Renderable
 	 */
 	private boolean isSideVisibleForBlockType(int check, int block)
 	{
-		return check < 1 || Block.getBlock(check).isBlockInvisible();
+		return check < 1 || Block.getBlock(check).isBlockInvisible() || Block.getBlock(check).isBlockTransparent();
 	}
 
 	private int getChunkWorldPosX()
