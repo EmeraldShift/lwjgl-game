@@ -2,6 +2,8 @@ package com.lithia.cs.core;
 
 import org.lwjgl.util.vector.*;
 
+import com.lithia.cs.core.util.*;
+
 /**
  * A simple configuration file to contain a few hard-coded values used by the
  * application.
@@ -27,7 +29,7 @@ public class Config
 	/**
 	 * The size of the game world, in chunks along each axis.
 	 */
-	public static final Vector3f WORLD_SIZE = new Vector3f(24, 1, 24);
+	public static final Vector3f WORLD_SIZE = VectorPool.get(64, 1, 64);
 	
 	/**
 	 * The number of times per second the game will attempt to redraw the

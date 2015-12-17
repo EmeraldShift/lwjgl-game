@@ -2,6 +2,8 @@ package com.lithia.cs.core.world.block;
 
 import org.lwjgl.util.vector.Vector4f;
 
+import com.lithia.cs.core.util.*;
+
 /**
  * Represents a block in the voxel world. Each block has a defined type, which
  * is one of the available types in the {@code blocks} array. Blocks may be
@@ -19,7 +21,7 @@ public abstract class Block
 		LEFT, RIGHT, TOP, BOTTOM, FRONT, BACK;
 	}
 	
-	private static Block[] blocks = { new BlockAir(), new BlockDirt(), new BlockGlass() };
+	private static Block[] blocks = { new BlockAir(), new BlockDirt(), new BlockSnow() };
 	private static Block nil = new BlockNil();
 	
 	public static Block getBlock(int type)
@@ -44,7 +46,7 @@ public abstract class Block
 	 */
 	public Vector4f getColor()
 	{
-		return new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+		return VectorPool.put(VectorPool.get(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 	
 	/**
@@ -59,11 +61,11 @@ public abstract class Block
 	{
 		Vector4f color = getColor();
 		
-		if (side == SIDE.TOP) return new Vector4f(color.x * 0.9f, color.y * 0.9f, color.z * 0.9f, color.w * 1.0f);
-		if (side == SIDE.LEFT || side == SIDE.RIGHT) return new Vector4f(color.x * 0.75f, color.y * 0.75f, color.z * 0.75f, color.w * 1.0f);
-		if (side == SIDE.FRONT || side == SIDE.BACK) return new Vector4f(color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, color.w * 1.0f);
+		if (side == SIDE.TOP) return VectorPool.put(VectorPool.get(color.x * 0.9f, color.y * 0.9f, color.z * 0.9f, color.w * 1.0f));
+		if (side == SIDE.LEFT || side == SIDE.RIGHT) return VectorPool.put(VectorPool.get(color.x * 0.75f, color.y * 0.75f, color.z * 0.75f, color.w * 1.0f));
+		if (side == SIDE.FRONT || side == SIDE.BACK) return VectorPool.put(VectorPool.get(color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, color.w * 1.0f));
 		
-		return new Vector4f(color.x * 0.3f, color.y * 0.3f, color.z * 0.3f, color.w * 1.0f);
+		return VectorPool.put(VectorPool.get(color.x * 0.3f, color.y * 0.3f, color.z * 0.3f, color.w * 1.0f));
 	}
 	
 	public boolean isBlockTransparent()

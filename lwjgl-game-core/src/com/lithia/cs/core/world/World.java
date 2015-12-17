@@ -2,10 +2,9 @@ package com.lithia.cs.core.world;
 
 import java.util.*;
 
-import org.lwjgl.util.vector.*;
-
 import com.lithia.cs.core.*;
 import com.lithia.cs.core.gen.*;
+import com.lithia.cs.core.util.*;
 
 public class World extends Renderable
 {
@@ -48,28 +47,28 @@ public class World extends Renderable
 	{
 		this.player = player;
 		chunks = new Chunk[(int) Config.WORLD_SIZE.x][(int) Config.WORLD_SIZE.y][(int) Config.WORLD_SIZE.z];
+		player.resetPosition();
 		
 		Generator terrainGen = new GeneratorTerrain(seed);
 		
-		for (int x = 0; x < Config.WORLD_SIZE.x; x++)
-		{
-			for (int z = 0; z < Config.WORLD_SIZE.z; z++)
-			{
-				ArrayList<Generator> gs = new ArrayList<Generator>();
-				gs.add(terrainGen);
-				
-				Chunk c = new Chunk(this, new Vector3f(x, 0, z), gs);
-				chunks[x][0][z] = c;
-				queueChunkForUpdate(c);
-			}
-		}
-		
-		player.resetPosition();
 		updateThread = new Thread(new Runnable()
 		{
 			
 			public void run()
 			{
+				for (int x = 0; x < Config.WORLD_SIZE.x; x++)
+				{
+					for (int z = 0; z < Config.WORLD_SIZE.z; z++)
+					{
+						ArrayList<Generator> gs = new ArrayList<Generator>();
+						gs.add(terrainGen);
+						
+						Chunk c = new Chunk(World.this, VectorPool.get(x, 0, z), gs);
+						chunks[x][0][z] = c;
+						queueChunkForUpdate(c);
+					}
+				}
+				
 				while (true)
 				{
 					if (!chunkUpdateQueue.isEmpty() && chunkDLUpdateQueue.isEmpty())

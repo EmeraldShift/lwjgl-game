@@ -4,7 +4,9 @@ import static org.lwjgl.opengl.GL11.*;
 
 import org.lwjgl.input.*;
 import org.lwjgl.util.vector.*;
+
 import com.lithia.cs.core.*;
+import com.lithia.cs.core.util.*;
 
 public class Player extends Renderable
 {
@@ -33,7 +35,7 @@ public class Player extends Renderable
 	 */
 	private void updatePosition()
 	{
-		Vector3f dPos = new Vector3f();
+		Vector3f dPos = VectorPool.getVector3();
 		
 		yaw += Mouse.getDX() / 10.0f;
 		pitch -= Mouse.getDY() / 10.0f;
@@ -76,11 +78,12 @@ public class Player extends Renderable
 		}
 		
 		position = Vector3f.add(dPos, position, null);
+		VectorPool.put(dPos);
 	}
 
 	public void resetPosition()
 	{
-		position = new Vector3f(192, 80, 192);
+		position = VectorPool.get(192, 80, 192);
 	}
 	
 }

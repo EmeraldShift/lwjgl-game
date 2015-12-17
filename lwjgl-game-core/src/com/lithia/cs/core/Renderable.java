@@ -2,6 +2,8 @@ package com.lithia.cs.core;
 
 import org.lwjgl.util.vector.*;
 
+import com.lithia.cs.core.util.*;
+
 /**
  * Represents an object which can be drawn in 3-dimensional space. All
  * {@code Renderable}s have a default position of (0, 0, 0}, and must implement
@@ -9,7 +11,7 @@ import org.lwjgl.util.vector.*;
  */
 public abstract class Renderable
 {
-	protected Vector3f position = new Vector3f();
+	protected Vector3f position = VectorPool.getVector3();
 	
 	/**
 	 * Draws the {@code Renderable} to the game screen.
