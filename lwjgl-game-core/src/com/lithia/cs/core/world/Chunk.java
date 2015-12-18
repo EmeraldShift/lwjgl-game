@@ -60,7 +60,7 @@ public class Chunk extends Renderable
 	 * of this class is to store as little information as possible, to make
 	 * saving the world to a file much more effficient.
 	 */
-	private int[][][] blocks;
+	private byte[][][] blocks;
 	
 	/**
 	 * Holds a list of this chunk's neighboring chunks, useful for cross-chunk
@@ -84,7 +84,7 @@ public class Chunk extends Renderable
 		this.position = position;
 		this.parent = parent;
 		
-		blocks = new int[(int) CHUNK_SIZE.x][(int) CHUNK_SIZE.y][(int) CHUNK_SIZE.z];
+		blocks = new byte[(int) CHUNK_SIZE.x][(int) CHUNK_SIZE.y][(int) CHUNK_SIZE.z];
 		generators.addAll(gen);
 	}
 	
@@ -490,7 +490,7 @@ public class Chunk extends Renderable
 		return x * x + z * z;
 	}
 	
-	public int getBlock(int x, int y, int z)
+	public byte getBlock(int x, int y, int z)
 	{
 		try
 		{
@@ -502,7 +502,7 @@ public class Chunk extends Renderable
 		return -1;
 	}
 	
-	public void setBlock(int x, int y, int z, int type)
+	public void setBlock(int x, int y, int z, byte type)
 	{
 		try
 		{

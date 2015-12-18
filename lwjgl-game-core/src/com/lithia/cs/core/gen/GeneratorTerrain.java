@@ -27,7 +27,7 @@ public class GeneratorTerrain implements Generator
 				
 				for(int y = 0; y < height; y++)
 				{
-					c.setBlock(x, y, z, 1);
+					c.setBlock(x, y, z, (byte) 1);
 				}
 			}
 		}

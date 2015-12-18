@@ -179,7 +179,7 @@ public class World extends Renderable
 		}
 	}
 	
-	public int getBlock(int x, int y, int z)
+	public byte getBlock(int x, int y, int z)
 	{
 		int chunkPosX = calcChunkPosX(x);
 		int chunkPosZ = calcChunkPosZ(z);
