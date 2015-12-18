@@ -1,7 +1,5 @@
 package com.lithia.cs.core.gen;
 
-import java.util.Random;
-
 import com.lithia.cs.core.util.PerlinNoise;
 import com.lithia.cs.core.world.Chunk;
 import com.lithia.cs.core.world.World;
@@ -29,7 +27,7 @@ public class GeneratorTerrain implements Generator
 				
 				for(int y = 0; y < height; y++)
 				{
-					c.setBlock(x, y, z, new Random().nextInt(5) == 0 ? 2 : 1);
+					c.setBlock(x, y, z, 1);
 				}
 			}
 		}

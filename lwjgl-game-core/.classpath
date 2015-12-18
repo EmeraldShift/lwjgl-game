@@ -8,6 +8,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/lwjgl_util.jar"/>
-	<classpathentry kind="lib" path="lib/javalution.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Michael/git/voxel-game/lwjgl-game-core/lib/javolution.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

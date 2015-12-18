@@ -1,6 +1,8 @@
 package com.lithia.cs.core.world;
 
-import java.util.*;
+import javolution.util.*;
+
+import org.lwjgl.util.vector.*;
 
 import com.lithia.cs.core.*;
 import com.lithia.cs.core.gen.*;
@@ -16,10 +18,16 @@ public class World extends Renderable
 	private Player player;
 	
 	/**
-	 * The active collection of chunks being used by the World. Each chunk is a
-	 * large collection of blocks, divided up for runtime efficiency.
+	 * The active cache of chunks being used by the World. Each chunk is a large
+	 * collection of blocks, divided up for runtime efficiency.
 	 */
-	private Chunk[][][] chunks;
+	private FastMap<Integer, Chunk> chunkCache = new FastMap<Integer, Chunk>();
+	
+	/**
+	 * A collection of chunks currently visible to the player, whether by being
+	 * within a reasonable distance or otherwise.
+	 */
+	private FastTable<Chunk> visibleChunks = new FastTable<Chunk>();
 	
 	/**
 	 * A separately-running thread devoted to continuously updating chunks
@@ -33,7 +41,7 @@ public class World extends Renderable
 	 * {@code updateThread} thread before being switched to the {@code DLUpdate}
 	 * queue for display list handling.
 	 */
-	private List<Chunk> chunkUpdateQueue = new LinkedList<Chunk>();
+	private FastTable<Chunk> chunkUpdateQueue = new FastTable<Chunk>();
 	
 	/**
 	 * The {@code DLUpdate} queue holds chunks whose vertex arrays have been
@@ -41,61 +49,54 @@ public class World extends Renderable
 	 * vertex data. Chunks in this queue are processed by the main thread to
 	 * maintain thread safety between the updating and the rendering of chunks.
 	 */
-	private List<Chunk> chunkDLUpdateQueue = new LinkedList<Chunk>();
+	private FastTable<Chunk> chunkDLUpdateQueue = new FastTable<Chunk>();
+	
+	private GeneratorTerrain terrainGen;
+	private long lastChunkUpdate = Helper.getTime();
 	
 	public World(String name, String seed, Player player)
 	{
 		this.player = player;
-		chunks = new Chunk[(int) Config.WORLD_SIZE.x][(int) Config.WORLD_SIZE.y][(int) Config.WORLD_SIZE.z];
 		player.resetPosition();
 		
-		Generator terrainGen = new GeneratorTerrain(seed);
+		terrainGen = new GeneratorTerrain(seed);
 		
 		updateThread = new Thread(new Runnable()
 		{
 			
 			public void run()
 			{
-				for (int x = 0; x < Config.WORLD_SIZE.x; x++)
-				{
-					for (int z = 0; z < Config.WORLD_SIZE.z; z++)
-					{
-						ArrayList<Generator> gs = new ArrayList<Generator>();
-						gs.add(terrainGen);
-						
-						Chunk c = new Chunk(World.this, VectorPool.get(x, 0, z), gs);
-						chunks[x][0][z] = c;
-						queueChunkForUpdate(c);
-					}
-				}
-				
 				while (true)
 				{
-					if (!chunkUpdateQueue.isEmpty() && chunkDLUpdateQueue.isEmpty())
+					if (!chunkUpdateQueue.isEmpty())
 					{
-						Chunk[] chunks = chunkUpdateQueue.toArray(new Chunk[0]);
-						
 						double distance = Float.MAX_VALUE;
 						int index = -1;
 						
-						for(int i = 0; i < chunks.length; i++)
+						int i = 0;
+						Chunk c;
+						for (Chunk last = chunkUpdateQueue.getLast(); (c = chunkUpdateQueue.get(i)) != last; i++)
 						{
-							Chunk c = chunks[i];
 							double dist = c.calcDistanceSquaredToPlayer();
 							
-							if(dist < distance)
+							if (dist < distance)
 							{
 								distance = dist;
 								index = i;
 							}
 						}
 						
-						if(index != -1)
+						if (index != -1)
 						{
-							Chunk c = chunks[index];
+							c = chunkUpdateQueue.remove(index);
 							processChunk(c);
-							chunkUpdateQueue.remove(c);
 						}
+					}
+					
+					if (Helper.getTime() - lastChunkUpdate >= 1000)
+					{
+						updateVisibleChunks();
+						lastChunkUpdate = Helper.getTime();
 					}
 					
 					try
@@ -124,7 +125,8 @@ public class World extends Renderable
 	{
 		if (c == null) return;
 		
-		Chunk[] neighbors = c.getNeighbors();
+		c.generate();
+		Chunk[] neighbors = c.loadOrCreateNeighbors();
 		for (Chunk n : neighbors)
 		{
 			if (n == null) continue;
@@ -137,8 +139,6 @@ public class World extends Renderable
 				chunkDLUpdateQueue.add(n);
 			}
 		}
-		
-		c.generate();
 		
 		if (c.update)
 		{
@@ -154,13 +154,13 @@ public class World extends Renderable
 	 */
 	public void render()
 	{
-		for (int x = 0; x < Config.WORLD_SIZE.x; x++)
+		if(visibleChunks.isEmpty()) return;
+		
+		int i = 0;
+		Chunk c;
+		for (Chunk last = visibleChunks.getLast(); (c = visibleChunks.get(i)) != last; i++)
 		{
-			for (int z = 0; z < Config.WORLD_SIZE.x; z++)
-			{
-				Chunk c = chunks[x][0][z];
-				if (c != null) c.render();
-			}
+			if (c != null) c.render();
 		}
 	}
 	
@@ -171,7 +171,7 @@ public class World extends Renderable
 	{
 		try
 		{
-			Chunk c = chunkDLUpdateQueue.remove(0);
+			Chunk c = chunkDLUpdateQueue.poll();
 			c.generateDisplayList();
 		}
 		catch (Exception e)
@@ -179,55 +179,106 @@ public class World extends Renderable
 		}
 	}
 	
-	public Chunk getChunk(int x, int y, int z)
-	{
-		Chunk c = null;
-		
-		try
-		{
-			c = chunks[x][y][z];
-		}
-		catch (Exception e)
-		{
-		}
-		
-		return c;
-	}
-	
 	public int getBlock(int x, int y, int z)
 	{
 		int chunkPosX = calcChunkPosX(x);
-		int chunkPosY = calcChunkPosY(y);
 		int chunkPosZ = calcChunkPosZ(z);
 		
 		int blockPosX = calcBlockPosX(x, chunkPosX);
-		int blockPosY = calcBlockPosY(y, chunkPosY);
 		int blockPosZ = calcBlockPosZ(z, chunkPosZ);
 		
 		Chunk c = null;
 		
 		try
 		{
-			c = chunks[chunkPosX][chunkPosY][chunkPosZ];
+			c = loadOrCreateChunk(chunkPosX, chunkPosZ);
+			return c.getBlock(blockPosX, y, blockPosZ);
 		}
 		catch (Exception e)
 		{
 		}
 		
-		if (c != null)
-			return c.getBlock(blockPosX, blockPosY, blockPosZ);
-		
 		return 1;
 	}
 	
+	/**
+	 * Loads the chunk at the speficied location from the chunk cache, or
+	 * creates a new one if it doesn't exist.
+	 * 
+	 * @param x
+	 * @param z
+	 * @return
+	 */
+	public Chunk loadOrCreateChunk(int x, int z)
+	{
+		if(x < 0 || z < 0) return null;
+		
+		Chunk c = chunkCache.get(Helper.cantor(x, z));
+		if (c != null) return c;
+		
+		c = prepareNewChunk(x, z);
+		chunkCache.put(Helper.cantor(x, z), c);
+		return c;
+	}
+	
+	private Chunk prepareNewChunk(int x, int z)
+	{
+		FastTable<Generator> gen = new FastTable<Generator>();
+		gen.add(terrainGen);
+		return new Chunk(this, new Vector3f(x, 0, z), gen);
+	}
+	
+	private void updateVisibleChunks()
+	{
+		visibleChunks = fetchVisibleChunks();
+		
+		// Cancel updating of non-visible chunks
+		FastTable<Chunk> del = new FastTable<Chunk>();
+		int i = 0;
+		Chunk c;
+		for(Chunk last = chunkUpdateQueue.getLast(); (c = chunkUpdateQueue.get(i)) != last; i++)
+		{
+			if(!visibleChunks.contains(c)) del.add(c);
+		}
+		
+		visibleChunks.removeAll(del);
+		del.clear();
+	}
+	
+	private FastTable<Chunk> fetchVisibleChunks()
+	{
+		FastTable<Chunk> visibleChunks = new FastTable<Chunk>();
+		for(int x = -8; x < 8; x++)
+		{
+			for(int z = -8; z < 8; z++)
+			{
+				Chunk c = loadOrCreateChunk(calcPlayerChunkOffsetX() + x, calcPlayerChunkOffsetZ() + z);
+
+				if(c != null)
+				{
+					if(c.generate || c.update) queueChunkForUpdate(c);
+					visibleChunks.add(c);
+				}
+				
+			}
+		}
+		
+		return visibleChunks;
+	}
+
+	private int calcPlayerChunkOffsetX()
+	{
+		return (int) (player.getPosition().x / Chunk.CHUNK_SIZE.x);
+	}
+	
+	private int calcPlayerChunkOffsetZ()
+	{
+		return (int) (player.getPosition().z / Chunk.CHUNK_SIZE.z);
+	}
+
 	private int calcBlockPosX(int x1, int x2)
 	{
 		return (x1 - x2 * (int) Chunk.CHUNK_SIZE.x);
-	}
-	
-	private int calcBlockPosY(int y1, int y2)
-	{
-		return (y1 - y2 * (int) Chunk.CHUNK_SIZE.y);
 	}
 	
 	private int calcBlockPosZ(int z1, int z2)
@@ -238,11 +289,6 @@ public class World extends Renderable
 	private int calcChunkPosX(int x)
 	{
 		return x / (int) Chunk.CHUNK_SIZE.x;
-	}
-	
-	private int calcChunkPosY(int y)
-	{
-		return y / (int) Chunk.CHUNK_SIZE.y;
 	}
 	
 	private int calcChunkPosZ(int z)
@@ -260,7 +306,7 @@ public class World extends Renderable
 	{
 		if (c != null) chunkUpdateQueue.add(c);
 	}
-
+	
 	public Player getPlayer()
 	{
 		return player;

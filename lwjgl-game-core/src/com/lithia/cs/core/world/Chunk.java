@@ -35,7 +35,7 @@ public class Chunk extends Renderable
 	private int displayList = -1;
 	
 	public boolean update = true;
-	private boolean generate = true;
+	public boolean generate = true;
 	
 	/**
 	 * Holds all the data for the positions of the vertices.
@@ -79,7 +79,7 @@ public class Chunk extends Renderable
 	 * Initializes a chunk, supplying it with its position in the world as well
 	 * as a hook back to the "parent" world.
 	 */
-	public Chunk(World parent, Vector3f position, ArrayList<Generator> gen)
+	public Chunk(World parent, Vector3f position, Collection<Generator> gen)
 	{
 		this.position = position;
 		this.parent = parent;
@@ -484,11 +484,10 @@ public class Chunk extends Renderable
 	
 	public double calcDistanceSquaredToPlayer()
 	{
-		double x = parent.getPlayer().getPosition().x - getChunkWorldPosX();
-		double y = parent.getPlayer().getPosition().y - getChunkWorldPosY();
-		double z = parent.getPlayer().getPosition().z - getChunkWorldPosZ();
+		double x = parent.getPlayer().getPosition().x - getChunkWorldPosX() - Chunk.CHUNK_SIZE.x / 2;
+		double z = parent.getPlayer().getPosition().z - getChunkWorldPosZ() - Chunk.CHUNK_SIZE.z / 2;
 		
-		return x * x + y * y + z * z;
+		return x * x + z * z;
 	}
 	
 	public int getBlock(int x, int y, int z)
@@ -519,7 +518,7 @@ public class Chunk extends Renderable
 	
 	private void updateNeighbors(int x, int z)
 	{
-		Chunk[] neighbors = getNeighbors();
+		Chunk[] neighbors = loadOrCreateNeighbors();
 		
 		if (x == 0) neighbors[1].update = true;
 		if (x == Chunk.CHUNK_SIZE.x - 1) neighbors[0].update = true;
@@ -527,15 +526,15 @@ public class Chunk extends Renderable
 		if (z == Chunk.CHUNK_SIZE.z - 1) neighbors[2].update = true;
 	}
 	
-	public Chunk[] getNeighbors()
+	public Chunk[] loadOrCreateNeighbors()
 	{
 		if (neighbors == null)
 		{
 			neighbors = new Chunk[4];
-			neighbors[0] = parent.getChunk((int) position.x + 1, (int) position.y, (int) position.z);
-			neighbors[1] = parent.getChunk((int) position.x - 1, (int) position.y, (int) position.z);
-			neighbors[2] = parent.getChunk((int) position.x, (int) position.y, (int) position.z + 1);
-			neighbors[3] = parent.getChunk((int) position.x, (int) position.y, (int) position.z - 1);
+			neighbors[0] = parent.loadOrCreateChunk((int) position.x + 1, (int) position.z);
+			neighbors[1] = parent.loadOrCreateChunk((int) position.x - 1, (int) position.z);
+			neighbors[2] = parent.loadOrCreateChunk((int) position.x, (int) position.z + 1);
+			neighbors[3] = parent.loadOrCreateChunk((int) position.x, (int) position.z - 1);
 		}
 		return neighbors;
 	}
